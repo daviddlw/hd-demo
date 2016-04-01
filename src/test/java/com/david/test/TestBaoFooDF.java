@@ -1,6 +1,7 @@
 package com.david.test;
 
 import java.io.File;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,7 +18,13 @@ import com.baofoo.sdk.http.SimpleHttpResponse;
 import com.baofoo.sdk.rsa.RsaCodingUtil;
 import com.baofoo.sdk.util.BaofooClient;
 
-public class TestBaoFoo {
+/**
+ * 添加宝付代付接口（转账提现）
+ * 
+ * @author dailiwei
+ *
+ */
+public class TestBaoFooDF {
 
 	private static final String DATE_TYPE = "json";
 
@@ -25,7 +32,7 @@ public class TestBaoFoo {
 		String keyStorePath = "Q:" + File.separator + "baofu_cert" + File.separator + "m_pri.pfx";
 		String keyStorePassword = "123456";
 		String pub_key = "Q:" + File.separator + "baofu_cert" + File.separator + "baofoo_pub.cer";
-		String origData = new String(Base64.encodeBase64(beanToJsonStr.getBytes()));
+		String origData = new String(Base64.encodeBase64(beanToJsonStr.getBytes(Charset.forName("UTF-8"))));
 
 		String encryptData = RsaCodingUtil.encryptByPriPfxFile(origData, keyStorePath, keyStorePassword);
 		System.out.println("----------->私钥加密结果：" + encryptData);
@@ -101,11 +108,18 @@ public class TestBaoFoo {
 
 		doWork(beanToJsonStr, requestUrl);
 	}
-	
+
+	/**
+	 * 0004接口与0001接口的区别在于，它会自动按照下发银行的限额进行交易单的拆分，
+	 * 例如单笔50W限额，如果你提交了100W的单子，他会自动拆分成2单 如果使用0001那就会产生超额错误 限额说明： 工农招建兴单笔50W
+	 * 其他单笔49990
+	 * 
+	 * @throws Exception
+	 */
 	@Test
-	public void testBF0040004() throws Exception{
+	public void testBF0040004() throws Exception {
 		TransContent<TransReqBF0040004> transContent = new TransContent<>(DATE_TYPE);
-		
+
 		List<TransReqBF0040004> transReqDatas = new ArrayList<>();
 		TransReqBF0040004 transReqData = new TransReqBF0040004();
 		transReqData.setTrans_no("ABC00000000000000004");
@@ -119,7 +133,7 @@ public class TestBaoFoo {
 		transReqData.setTrans_summary("交易备注信息256个字符");
 
 		transReqDatas.add(transReqData);
-		
+
 		TransReqBF0040004 transReqData2 = new TransReqBF0040004();
 		transReqData2.setTrans_no("ABC00000000000000005");
 		transReqData2.setTrans_money("0.01");
@@ -137,7 +151,7 @@ public class TestBaoFoo {
 		transHead.setTrans_count(String.valueOf(transReqDatas.size()));
 		transHead.setTrans_totalMoney("0.02");
 		transContent.setTrans_head(transHead);
-		
+
 		String beanToJsonStr = transContent.obj2Str(transContent);
 		System.out.println(beanToJsonStr);
 
