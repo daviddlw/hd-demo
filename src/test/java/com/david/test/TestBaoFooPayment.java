@@ -1,30 +1,36 @@
 package com.david.test;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.codec.binary.Base64;
 import org.junit.Test;
 
-import com.baofoo.sdk.rsa.RsaCodingUtil;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import com.david.demo.HttpUtils;
-import com.david.dto.BaoFuAuthPayDataContent;
-import com.david.dto.BaoFuAuthRequest;
-import com.david.dto.TxnSubTypeEnum;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import com.david.dto.BaoFooCommonRequest;
+import com.david.dto.BaoFooPayment;
+import com.david.enums.PayCodeEnum;
+import com.david.enums.TxnSubTypeEnum;
+import com.david.utils.RsaCodingUtil;
+import com.david.utils.RsaReadUtil;
 
 /**
- * 测试宝付认证
+ * 测试宝付认证（认证绑卡+支付）
  * 
  * @author dailiwei
  *
  */
-public class TestBaoFooAuth {
+public class TestBaoFooPayment {
 
 	private static final String BFKEY_100000749_100000933_CER = "bfkey_100000749@@100000933.cer";
 	private static final String BFKEY_100000749_100000933_PFX = "bfkey_100000749@@100000933.pfx";
@@ -37,19 +43,20 @@ public class TestBaoFooAuth {
 	private static final String TEST_BIZ_TYPE = "0000";
 	private static final String DATA_TYPE = "json";
 	private static final String MOBILE = "13661896734";
-	private static final Gson gson = new Gson();
+	private static final String KEY_STORE_PASSWORD = "100000749_272769";
 
 	/**
-	 * 测试绑卡
-	 * @throws UnsupportedEncodingException 
+	 * 测试绑卡交易
+	 * 
+	 * @throws UnsupportedEncodingException
 	 */
 	@Test
 	public void testBindCard() throws UnsupportedEncodingException {
-		BaoFuAuthRequest request = getAuthRequest(TxnSubTypeEnum.BindCardTrade);
+		BaoFooCommonRequest request = getAuthRequest(TxnSubTypeEnum.BindCardTrade);
 
 		String tradeDate = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
 
-		BaoFuAuthPayDataContent dataContent = new BaoFuAuthPayDataContent();
+		BaoFooPayment dataContent = new BaoFooPayment();
 		dataContent.setTxn_sub_type(TxnSubTypeEnum.BindCardTrade.getCode());
 		dataContent.setBiz_type(TEST_BIZ_TYPE);
 		dataContent.setTerminal_id(TEST_TERMINAL_ID);
@@ -73,20 +80,25 @@ public class TestBaoFooAuth {
 		dataContent.setAcc_pwd("123456");
 		dataContent.setValid_date("03/20");
 		dataContent.setValid_no("888");
-		dataContent.setPay_code("ICBC");
+		dataContent.setPay_code(PayCodeEnum.ICBC.getCode());
 		dataContent.setSms_code("123456");
 
 		doWork(dataContent, request);
 
 	}
 
+	/**
+	 * 测试解绑卡交易
+	 * 
+	 * @throws UnsupportedEncodingException
+	 */
 	@Test
 	public void testUnBindCard() throws UnsupportedEncodingException {
-		BaoFuAuthRequest request = getAuthRequest(TxnSubTypeEnum.UnBindCardTrade);
+		BaoFooCommonRequest request = getAuthRequest(TxnSubTypeEnum.UnBindCardTrade);
 
 		String tradeDate = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
 
-		BaoFuAuthPayDataContent dataContent = new BaoFuAuthPayDataContent();
+		BaoFooPayment dataContent = new BaoFooPayment();
 		dataContent.setTxn_sub_type(TxnSubTypeEnum.UnBindCardTrade.getCode());
 		dataContent.setBiz_type(TEST_BIZ_TYPE);
 		dataContent.setTerminal_id(TEST_TERMINAL_ID);
@@ -100,13 +112,18 @@ public class TestBaoFooAuth {
 		doWork(dataContent, request);
 	}
 
+	/**
+	 * 测试查询绑卡关系交易
+	 * 
+	 * @throws UnsupportedEncodingException
+	 */
 	@Test
 	public void testQueryBindCard() throws UnsupportedEncodingException {
-		BaoFuAuthRequest request = getAuthRequest(TxnSubTypeEnum.QueryBindCard);
+		BaoFooCommonRequest request = getAuthRequest(TxnSubTypeEnum.QueryBindCard);
 
 		String tradeDate = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
 
-		BaoFuAuthPayDataContent dataContent = new BaoFuAuthPayDataContent();
+		BaoFooPayment dataContent = new BaoFooPayment();
 		dataContent.setTxn_sub_type(TxnSubTypeEnum.QueryBindCard.getCode());
 		dataContent.setBiz_type(TEST_BIZ_TYPE);
 		dataContent.setTerminal_id(TEST_TERMINAL_ID);
@@ -120,13 +137,18 @@ public class TestBaoFooAuth {
 		doWork(dataContent, request);
 	}
 
+	/**
+	 * 测试支付类交易接口
+	 * 
+	 * @throws UnsupportedEncodingException
+	 */
 	@Test
 	public void testPayment() throws UnsupportedEncodingException {
-		BaoFuAuthRequest request = getAuthRequest(TxnSubTypeEnum.PaymentTrade);
+		BaoFooCommonRequest request = getAuthRequest(TxnSubTypeEnum.PaymentTrade);
 
 		String tradeDate = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
 
-		BaoFuAuthPayDataContent dataContent = new BaoFuAuthPayDataContent();
+		BaoFooPayment dataContent = new BaoFooPayment();
 		dataContent.setTxn_sub_type(TxnSubTypeEnum.PaymentTrade.getCode());
 		dataContent.setBiz_type(TEST_BIZ_TYPE);
 		dataContent.setTerminal_id(TEST_TERMINAL_ID);
@@ -143,8 +165,8 @@ public class TestBaoFooAuth {
 		doWork(dataContent, request);
 	}
 
-	private BaoFuAuthRequest getAuthRequest(TxnSubTypeEnum type) {
-		BaoFuAuthRequest request = new BaoFuAuthRequest();
+	private BaoFooCommonRequest getAuthRequest(TxnSubTypeEnum type) {
+		BaoFooCommonRequest request = new BaoFooCommonRequest();
 		request.setVersion(VERSION);
 		request.setMember_id(TEST_MEMBER_ID);
 		request.setTerminal_id(TEST_TERMINAL_ID);
@@ -156,17 +178,17 @@ public class TestBaoFooAuth {
 	}
 
 	/**
-	 * 测试发送短信交易
+	 * 测试发送短信类交易
 	 * 
 	 * @throws UnsupportedEncodingException
 	 */
 	@Test
 	public void testSendSms() throws UnsupportedEncodingException {
 
-		BaoFuAuthRequest request = getAuthRequest(TxnSubTypeEnum.SmsTrade);
+		BaoFooCommonRequest request = getAuthRequest(TxnSubTypeEnum.SmsTrade);
 
 		String tradeDate = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
-		BaoFuAuthPayDataContent dataContent = new BaoFuAuthPayDataContent();
+		BaoFooPayment dataContent = new BaoFooPayment();
 		dataContent.setTxn_sub_type(TxnSubTypeEnum.SmsTrade.getCode());
 		dataContent.setBiz_type(TEST_BIZ_TYPE);
 		dataContent.setTerminal_id(TEST_TERMINAL_ID);
@@ -189,44 +211,108 @@ public class TestBaoFooAuth {
 
 	}
 
-	private void doWork(BaoFuAuthPayDataContent dataContent, BaoFuAuthRequest request)
-			throws UnsupportedEncodingException {
+	@Test
+	public void testPubAndPrivateKey() {
+		System.out.println(getPrivateKey());
+		System.out.println(getPublicKey());
+		System.out.println(getMerchantInfo(new HashMap<String, String>()));
+	}
+
+	/**
+	 * 获取参数化map
+	 * 
+	 * @param paramMap
+	 * @return
+	 */
+	private String getMerchantInfo(Map<String, String> paramMap) {
+		paramMap.put("baofooPrivateKey", getPrivateKey());
+		paramMap.put("baofooPublicKey", getPublicKey());
+		paramMap.put("baofooPassword", KEY_STORE_PASSWORD);
+		return JSON.toJSONString(paramMap, true);
+	}
+
+	/**
+	 * 获取私钥方法
+	 * 
+	 * @return
+	 * @throws IOException
+	 */
+	private String getPrivateKey() {
 		String keyStorePath = "Q:" + File.separator + "baofu_cert_auth" + File.separator
 				+ BFKEY_100000749_100000933_PFX;
 		String keyStorePassword = "100000749_272769";
-		String pub_key = "Q:" + File.separator + "baofu_cert_auth" + File.separator + BFKEY_100000749_100000933_CER;
 
-		String tempReqdata = gson.toJson(dataContent);
-		String origData = new String(Base64.encodeBase64(tempReqdata.getBytes(Charset.forName(UTF_8))));
-		String encryptData = RsaCodingUtil.encryptByPriPfxFile(origData, keyStorePath, keyStorePassword);
-
-		System.out.println("----------->私钥加密结果：" + encryptData);
-
-		request.setData_content(encryptData);
-		String requestBody = gson.toJson(request);
-		Map<String, String> requestParams = stringToMap(requestBody);
-
-		String encryptPostResult = HttpUtils.httpPostNoBody(REQUEST_URL, requestParams);
-
-		System.out.println(encryptPostResult);
-		String postResult = RsaCodingUtil.decryptByPubCerFile(encryptPostResult, pub_key);
-
-		String unBase64Data = new String(Base64.decodeBase64(postResult.getBytes(UTF_8)));
-		System.out.println(unBase64Data);
-
-		Map<String, String> resultMap = stringToMap(unBase64Data);
-
-		System.out.println("======================================");
-		System.out.println(resultMap);
+		PrivateKey privateKey = RsaReadUtil.getPrivateKeyFromFile(keyStorePath, keyStorePassword);
+		return Base64.encodeBase64String(privateKey.getEncoded());
 	}
 
+	private String getPublicKey() {
+		String pubPath = "Q:" + File.separator + "baofu_cert_auth" + File.separator + BFKEY_100000749_100000933_CER;
+		PublicKey publicKey = RsaReadUtil.getPublicKeyFromFile(pubPath);
+		return Base64.encodeBase64String(publicKey.getEncoded());
+	}
+
+	/**
+	 * 公钥加解密
+	 * 
+	 * @param dataContent
+	 * @param request
+	 * @throws Exception
+	 */
+	private void doWork(BaoFooPayment dataContent, BaoFooCommonRequest request) {
+		try {
+			String keyStorePath = "Q:" + File.separator + "baofu_cert_auth" + File.separator
+					+ BFKEY_100000749_100000933_PFX;
+			String keyStorePassword = "100000749_272769";
+			String pub_key = "Q:" + File.separator + "baofu_cert_auth" + File.separator + BFKEY_100000749_100000933_CER;
+
+			String tempReqdata = JSON.toJSONString(dataContent);
+			String origData = new String(Base64.encodeBase64(tempReqdata.getBytes(Charset.forName(UTF_8))));
+			// String encryptData = RsaCodingUtil.encryptByPriPfxFile(origData,
+			// keyStorePath, keyStorePassword);
+			// PrivateKey privateKey =
+			// RsaReadUtil.getPrivateKey(getPrivateKey());
+			String encryptData = RsaCodingUtil.encryptByPrivateKey(origData, getPrivateKey());
+
+			System.out.println("----------->私钥加密结果：" + encryptData);
+
+			request.setData_content(encryptData);
+			String requestBody = JSON.toJSONString(request);
+			Map<String, String> requestParams = stringToMap(requestBody);
+
+			String encryptPostResult = HttpUtils.httpPostNoBody(REQUEST_URL, requestParams);
+
+			System.out.println(encryptPostResult);
+			// PublicKey publicKey = RsaReadUtil.getPublicKey(getPublicKey());
+			String postResult = RsaCodingUtil.decryptByPublicKey(encryptPostResult, getPublicKey());
+			// String postResult =
+			// RsaCodingUtil.decryptByPubCerFile(encryptPostResult, pub_key);
+
+			String unBase64Data = new String(Base64.decodeBase64(postResult.getBytes(UTF_8)));
+			System.out.println(unBase64Data);
+
+			Map<String, String> resultMap = stringToMap(unBase64Data);
+
+			System.out.println("======================================");
+			System.out.println(resultMap);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+
+	}
+
+	/**
+	 * 查询支付交易状态
+	 * 
+	 * @throws UnsupportedEncodingException
+	 */
 	@Test
 	public void testQueryPaymentState() throws UnsupportedEncodingException {
-		BaoFuAuthRequest request = getAuthRequest(TxnSubTypeEnum.PaymentTrade);
+		BaoFooCommonRequest request = getAuthRequest(TxnSubTypeEnum.PaymentTrade);
 
 		String tradeDate = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
 
-		BaoFuAuthPayDataContent dataContent = new BaoFuAuthPayDataContent();
+		BaoFooPayment dataContent = new BaoFooPayment();
 		dataContent.setTxn_sub_type(TxnSubTypeEnum.PaymentTrade.getCode());
 		dataContent.setBiz_type(TEST_BIZ_TYPE);
 		dataContent.setTerminal_id(TEST_TERMINAL_ID);
@@ -251,8 +337,9 @@ public class TestBaoFooAuth {
 	 * @return 返回指定map
 	 */
 	private Map<String, String> stringToMap(String jsonStr) {
-		Map<String, String> resultMap = gson.fromJson(jsonStr, new TypeToken<Map<String, String>>() {
-		}.getType());
+		Map<String, String> resultMap = JSON.parseObject(jsonStr, new TypeReference<Map<String, String>>() {
+		});
+
 		return resultMap;
 	}
 

@@ -1,4 +1,4 @@
-package com.david.dto;
+package com.david.utils;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;

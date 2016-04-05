@@ -1,4 +1,4 @@
-package com.david.dto;
+package com.david.enums;
 
 /**
  * 交易子类型
