@@ -6,7 +6,7 @@ package com.david.dto;
  * @author dailiwei
  *
  */
-public class BaoFooCommonRequest {
+public class BaoFooCommonReqDTO {
 	private String version;
 	private String terminal_id;
 	private String txn_type;
@@ -15,12 +15,12 @@ public class BaoFooCommonRequest {
 	private String data_type;
 	private String data_content;
 
-	public BaoFooCommonRequest() {
+	public BaoFooCommonReqDTO() {
 		super();
 		// TODO Auto-generated constructor stub
 	}
 
-	public BaoFooCommonRequest(String version, String terminal_id, String txn_type, String txn_sub_type, String member_id,
+	public BaoFooCommonReqDTO(String version, String terminal_id, String txn_type, String txn_sub_type, String member_id,
 			String data_type, String data_content) {
 		super();
 		this.version = version;

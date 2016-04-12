@@ -5,7 +5,7 @@ package com.david.dto;
  * @author dailiwei
  *
  */
-public class BaoFooPayment {
+public class BaoFooPaymentDTO {
 	private String txn_sub_type;
 	private String next_txn_sub_type;
 	private String biz_type;
@@ -30,12 +30,12 @@ public class BaoFooPayment {
 	private String req_reserved;
 	private String orig_trans_id;
 
-	public BaoFooPayment() {
+	public BaoFooPaymentDTO() {
 		super();
 		// TODO Auto-generated constructor stub
 	}
 
-	public BaoFooPayment(String txn_sub_type, String next_txn_sub_type, String biz_type, String terminal_id,
+	public BaoFooPaymentDTO(String txn_sub_type, String next_txn_sub_type, String biz_type, String terminal_id,
 			String member_id, String trans_serial_no, String trans_id, String acc_no, String id_card_type,
 			String id_card, String id_holder, String mobile, String acc_pwd, String txn_amt, String bind_id,
 			String valid_date, String valid_no, String pay_code, String sms_code, String trade_date,
