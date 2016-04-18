@@ -38,17 +38,19 @@ public class TestBaoFooPayment {
 	private static final String BFKEY_100000276_100000994_PFX = "bfkey_100000276@@100000994.pfx";
 	private static final String BFKEY_100000749_100000933_CER = "bfkey_100000749@@100000933.cer";
 	private static final String BFKEY_100000749_100000933_PFX = "bfkey_100000749@@100000933.pfx";
+	private static final String BFKEY_REAL_PFX = "baofoo_pri.pfx";
+	private static final String BFKEY_REAL_CER = "bfkey_795052@@28821.cer";
 	private static final String UTF_8 = "UTF-8";
 	private static final String REQUEST_URL = "https://tgw.baofoo.com/cutpayment/api/backTransRequest";
 	private static final String REQUEST_URL_REAL= "https://public.baofoo.com/cutpayment/api/backTransRequest";
 	private static final String TXN_TYPE = "0431";
 	private static final String VERSION = "4.0.0.0";
-	private static final String TEST_MEMBER_ID = "100000276"; // 商户号 100000749
-	private static final String TEST_TERMINAL_ID = "100000994"; // 终端号 100000933
+	private static final String TEST_MEMBER_ID = "795052"; // 商户号 100000749-100000276
+	private static final String TEST_TERMINAL_ID = "28821"; // 终端号 100000933-100000994
 	private static final String TEST_BIZ_TYPE = "0000";
 	private static final String DATA_TYPE = "json";
 	private static final String MOBILE = "13661896734";
-	private static final String KEY_STORE_PASSWORD = "100000749_272769";
+	private static final String KEY_STORE_PASSWORD = "Hengda888";
 
 	/**
 	 * 测试绑卡交易
@@ -140,7 +142,7 @@ public class TestBaoFooPayment {
 		dataContent.setTrade_date(tradeDate);
 		dataContent.setAdditional_info("david查询绑卡信息交易通知");
 		dataContent.setReq_reserved("david查询绑卡信息交易通知");
-		dataContent.setAcc_no("6222020111122220000");
+		dataContent.setAcc_no("6230580000077369564");
 
 		doWork(dataContent, request);
 	}
@@ -241,9 +243,8 @@ public class TestBaoFooPayment {
 		dataContent.setTrade_date(tradeDate);
 		dataContent.setAdditional_info("david支付类交易通知");
 		dataContent.setReq_reserved("david支付类交易通知");
-		dataContent.setBind_id("201603261412121000009649074");
-		dataContent.setTrans_id("QAP00000000000000107");
-		dataContent.setOrig_trans_id("QAP00000000000000107");
+		dataContent.setBind_id("20160415163218288218861");
+		dataContent.setOrig_trans_id("QAP00000000000000124");
 
 		doWork(dataContent, request);
 	}
@@ -276,9 +277,9 @@ public class TestBaoFooPayment {
 	 * @return
 	 */
 	private String getMerchantInfo(Map<String, String> paramMap) {
-		paramMap.put("baofooPrivateKey", getPrivateKeyNew());
-		paramMap.put("baofooPublicKey", getPublicKeyNew());
-		paramMap.put("baofooTerminalKey", "100000994");
+		paramMap.put("baofooPrivateKey", getPrivateKey());
+		paramMap.put("baofooPublicKey", getPublicKey());
+		paramMap.put("baofooTerminalKey", "28821");
 		return JSON.toJSONString(paramMap, false);
 	}
 
@@ -289,15 +290,15 @@ public class TestBaoFooPayment {
 	 * @throws IOException
 	 */
 	private String getPrivateKey() {
-		String keyStorePath = "Q:" + File.separator + "baofu_cert_auth" + File.separator + BFKEY_100000749_100000933_PFX;
-		String keyStorePassword = "100000749_272769";
+		String keyStorePath = "Q:" + File.separator + "baofu_cert_auth" + File.separator + BFKEY_REAL_PFX;
+		String keyStorePassword = "Hengda888";
 
 		PrivateKey privateKey = RsaReadUtil.getPrivateKeyFromFile(keyStorePath, keyStorePassword);
 		return Base64.encodeBase64String(privateKey.getEncoded());
 	}
 
 	private String getPublicKey() {
-		String pubPath = "Q:" + File.separator + "baofu_cert_auth" + File.separator + BFKEY_100000749_100000933_CER;
+		String pubPath = "Q:" + File.separator + "baofu_cert_auth" + File.separator + BFKEY_REAL_CER;
 		PublicKey publicKey = RsaReadUtil.getPublicKeyFromFile(pubPath);
 		return Base64.encodeBase64String(publicKey.getEncoded());
 	}
@@ -332,7 +333,7 @@ public class TestBaoFooPayment {
 			// keyStorePath, keyStorePassword);
 			// PrivateKey privateKey =
 			// RsaReadUtil.getPrivateKey(getPrivateKey());
-			String encryptData = RsaCodingUtil.encryptByPrivateKey(origData, getPrivateKeyNew());
+			String encryptData = RsaCodingUtil.encryptByPrivateKey(origData, getPrivateKey());
 
 			System.out.println("----------->私钥加密结果：" + encryptData);
 
@@ -340,11 +341,11 @@ public class TestBaoFooPayment {
 			String requestBody = JSON.toJSONString(request);
 			Map<String, String> requestParams = stringToMap(requestBody);
 
-			String encryptPostResult = HttpUtils.httpPostNoBody(REQUEST_URL, requestParams);
+			String encryptPostResult = HttpUtils.httpPostNoBody(REQUEST_URL_REAL, requestParams);
 
 			System.out.println(encryptPostResult);
 			// PublicKey publicKey = RsaReadUtil.getPublicKey(getPublicKey());
-			String postResult = RsaCodingUtil.decryptByPublicKey(encryptPostResult, getPublicKeyNew());
+			String postResult = RsaCodingUtil.decryptByPublicKey(encryptPostResult, getPublicKey());
 			// String postResult =
 			// RsaCodingUtil.decryptByPubCerFile(encryptPostResult, pub_key);
 
