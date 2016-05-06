@@ -12,7 +12,7 @@ public class FastUser implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@JSONField(name = "user_id")
-	private Integer userId;
+	private String userId;
 
 	@JSONField(name = "user_name")
 	private String userName;
@@ -22,17 +22,17 @@ public class FastUser implements Serializable {
 		// TODO Auto-generated constructor stub
 	}
 
-	public FastUser(Integer userId, String userName) {
+	public FastUser(String userId, String userName) {
 		super();
 		this.userId = userId;
 		this.userName = userName;
 	}
 
-	public Integer getUserId() {
+	public String getUserId() {
 		return userId;
 	}
 
-	public void setUserId(Integer userId) {
+	public void setUserId(String userId) {
 		this.userId = userId;
 	}
 

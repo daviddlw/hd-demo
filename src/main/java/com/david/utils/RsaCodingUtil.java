@@ -1,6 +1,8 @@
 package com.david.utils;
 
 import com.baofoo.sdk.lang.string.StringUtil;
+import com.david.dto.ResponseDTO;
+
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -120,6 +122,21 @@ public final class RsaCodingUtil {
 
 	}
 
+	public static ResponseDTO encryptAndCheckPrivateKey(String src, String privateKey) {
+		ResponseDTO responseDTO = new ResponseDTO();
+		PrivateKey piKey;
+		try {
+			piKey = RsaReadUtil.getPrivateKey(privateKey);
+			responseDTO.setValue(encryptByPrivateKey(src, piKey));
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+			responseDTO.setException(e);
+			responseDTO.setValue(e.getMessage());
+		}
+
+		return responseDTO;
+	}
+
 	public static String decryptByPubCerFile(String src, String pubCerPath) {
 		PublicKey publicKey = RsaReadUtil.getPublicKeyFromFile(pubCerPath);
 		if (publicKey == null) {
@@ -157,7 +174,35 @@ public final class RsaCodingUtil {
 			log.error(ex.getMessage(), ex);
 			return null;
 		}
+	}
+	
+	public static ResponseDTO decryptAndCheckPublicKey(String src, PublicKey publicKey) {
+		ResponseDTO responseDTO = new ResponseDTO();
+		try {
+			byte[] destBytes = rsaByPublicKey(StringUtil.hex2Bytes(src), publicKey, 2);
+			if (destBytes == null) {
+				return null;
+			}
+			responseDTO.setValue(new String(destBytes, "UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+			log.error("decrypt content is not formated as utf-8:", e);
+			responseDTO.setValue(e.getMessage());
+			responseDTO.setException(e);
+		}
+		return responseDTO;
+	}
 
+	public static ResponseDTO decryptAndCheckPublicKey(String src, String publicKey) {
+		ResponseDTO responseDTO = new ResponseDTO();
+		try {
+			PublicKey pubKey = RsaReadUtil.getPublicKey(publicKey);
+			responseDTO = decryptAndCheckPublicKey(src, pubKey);
+		} catch (Exception ex) {
+			log.error(ex.getMessage(), ex);
+			responseDTO.setException(ex);
+			responseDTO.setValue(ex.getMessage());
+		}
+		return responseDTO;
 	}
 
 	public static byte[] rsaByPublicKey(byte[] srcData, PublicKey publicKey, int mode) {
