@@ -143,7 +143,7 @@ public class BaofooKeysTest {
 	}
 
 	/**
-	 * 加载错误格式的公钥
+	 * 加载错误格式的公钥(私钥加密数据为java.security.InvalidKeyException)
 	 */
 	@Test
 	public void testErrorPublicKeyFormat() {
@@ -152,7 +152,7 @@ public class BaofooKeysTest {
 	}
 
 	/**
-	 * 加载错误内容的公钥
+	 * 加载错误内容的公钥(返回报文维null)
 	 */
 	@Test
 	public void testErrorPublicKeyContent() {
@@ -161,9 +161,9 @@ public class BaofooKeysTest {
 	}
 
 	/**
-	 * 加载错误的终端号
+	 * 加载错误的终端号(BF00124-商户与终端号不匹配(member_id=795052,terminal_id=28822))
 	 */
-
+	@Test
 	public void testErrorTerminalKey() {
 		BaoFooCommonReqDTO request = getErrorAuthRequest(TxnSubTypeEnum.QueryBindCard);
 		doWork(getDataContent(), request, baofooPrivateKey, baofooPublicKey);
